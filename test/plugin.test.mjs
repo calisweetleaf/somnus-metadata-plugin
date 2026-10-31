@@ -4,7 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, it } from 'node:test';
 import { main, parse } from '../lib/cli.mjs';
-import { codexBlock, withCodexBlock, withoutCodexBlock } from '../lib/hosts.mjs';
+import { hostFor, codexBlock, withCodexBlock, withoutCodexBlock } from '../lib/hosts.mjs';
+import { spawnForm } from '../lib/backend.mjs';
 
 const FAKE_SOMNUS = `#!/usr/bin/env node
 const args = process.argv.slice(2);
@@ -153,6 +154,110 @@ describe('codex block', () => {
       /outside the managed block/);
     assert.throws(() => withCodexBlock('[mcp_servers."somnus-metadata".env]\nA = "1"\n', codexBlock('/a')),
       /outside the managed block/);
+  });
+});
+
+describe('skill drift detection', () => {
+  it('doctor flags an installed skill that drifted from the package and install repairs it', async () => {
+    await run('install', '--somnus', somnus);
+    const marker = JSON.parse(read('.factory', 'skills', 'somnus-metadata', '.somnus-plugin.json'));
+    assert.ok(/^[0-9a-f]{64}$/.test(marker.skillHash), `marker skillHash: ${marker.skillHash}`);
+    assert.equal(await run('doctor', '--somnus', somnus), 0, lines.join('\n'));
+
+    fs.appendFileSync(path.join(home, '.factory', 'skills', 'somnus-metadata', 'SKILL.md'), '\n<!-- drift -->\n');
+    assert.equal(await run('doctor', '--somnus', somnus, '--host', 'droid'), 1, lines.join('\n'));
+    const drifted = lines.find((l) => l.startsWith('FAIL droid: skill'));
+    assert.ok(drifted?.includes('differs from the packaged skill'), lines.join('\n'));
+    assert.ok(drifted?.includes("rerun 'somnus-plugin install'"), lines.join('\n'));
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'droid'), 0, lines.join('\n'));
+    assert.equal(await run('doctor', '--somnus', somnus, '--host', 'droid'), 0, lines.join('\n'));
+  });
+
+  it('doctor flags a drifted plugin skill copy for Antigravity too', async () => {
+    await run('install', '--somnus', somnus);
+    fs.appendFileSync(
+      path.join(home, '.gemini', 'config', 'plugins', 'somnus-metadata', 'skills', 'somnus-metadata', 'SKILL.md'),
+      '\n<!-- drift -->\n',
+    );
+    assert.equal(await run('doctor', '--somnus', somnus, '--host', 'antigravity'), 1, lines.join('\n'));
+    assert.ok(lines.some((l) => l.startsWith('FAIL antigravity: skill') && l.includes('differs from the packaged skill')),
+      lines.join('\n'));
+  });
+});
+
+describe('codex config formatting edge cases', () => {
+  it('preserves CRLF line endings inside and outside the managed block', async () => {
+    const crlf = ORIGINAL_TOML.replace(/\n/g, '\r\n');
+    fs.writeFileSync(path.join(home, '.codex', 'config.toml'), crlf);
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0, lines.join('\n'));
+    const toml = read('.codex', 'config.toml');
+    assert.ok(toml.startsWith(crlf), 'original CRLF lines kept verbatim');
+    assert.ok(toml.includes(`command = ${JSON.stringify(somnus)}\r\nargs = ["--actor", "codex", "mcp"]`),
+      lines.join('\n'));
+    assert.ok(!/[^\r]\n/.test(toml.slice(crlf.length)), 'the inserted region is CRLF throughout');
+    assert.equal(await run('uninstall', '--host', 'codex'), 0, lines.join('\n'));
+    assert.equal(read('.codex', 'config.toml'), crlf);
+  });
+
+  it('appends to a config with no trailing newline and restores it on uninstall', async () => {
+    const bare = '[mcp_servers.other]\ncommand = "other"';
+    fs.writeFileSync(path.join(home, '.codex', 'config.toml'), bare);
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0, lines.join('\n'));
+    const toml = read('.codex', 'config.toml');
+    assert.ok(toml.startsWith(`${bare}\n`), 'a newline is added before the block, original text intact');
+    assert.ok(toml.includes(`command = ${JSON.stringify(somnus)}`));
+    assert.equal(await run('uninstall', '--host', 'codex'), 0, lines.join('\n'));
+    assert.equal(read('.codex', 'config.toml'), bare);
+  });
+
+  it('round-trips a Windows-style somnus path through the Codex block', () => {
+    const winPath = 'C:\\Users\\da\\AppData\\Local\\somnus\\somnus.exe';
+    fs.writeFileSync(path.join(home, '.codex', 'config.toml'), withCodexBlock(ORIGINAL_TOML, codexBlock(winPath)));
+    const entry = hostFor('codex', { home, env: {} }).entry();
+    assert.equal(entry.command, winPath);
+    assert.deepEqual(entry.args, ['--actor', 'codex', 'mcp']);
+  });
+});
+
+describe('error paths and spawn forms', () => {
+  it('routes .cmd/.bat spawns through a shell on Windows only, quoting spaced args', () => {
+    const real = process.platform;
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    try {
+      assert.deepEqual(spawnForm('C:\\tools\\somnus.cmd', ['--actor', 'droid', 'mcp']),
+        ['C:\\tools\\somnus.cmd', ['--actor', 'droid', 'mcp'], { shell: true }]);
+      assert.deepEqual(spawnForm('C:\\somnus tools\\somnus.cmd', ['tool', 'install', '--force', 'C:\\my src']),
+        ['C:\\somnus tools\\somnus.cmd', ['tool', 'install', '--force', '"C:\\my src"'], { shell: true }]);
+      assert.deepEqual(spawnForm('C:\\tools\\somnus.exe', ['--version']), ['C:\\tools\\somnus.exe', ['--version'], {}]);
+    } finally {
+      Object.defineProperty(process, 'platform', { value: real });
+    }
+    assert.deepEqual(spawnForm('/usr/bin/somnus', ['--version']), ['/usr/bin/somnus', ['--version'], {}]);
+  });
+
+  it('refuses an invalid JSON config with a clear error instead of crashing', async () => {
+    fs.writeFileSync(path.join(home, '.factory', 'mcp.json'), '{not json');
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'droid'), 1);
+    assert.ok(lines.some((l) => l.includes('mcp.json is not valid JSON')), lines.join('\n'));
+  });
+
+  it('doctor reports a failed MCP handshake and heals a corrupted managed block', async () => {
+    await run('install', '--somnus', somnus);
+    const config = path.join(home, '.factory', 'mcp.json');
+    const data = JSON.parse(fs.readFileSync(config, 'utf8'));
+    data.mcpServers['somnus-metadata'].command = '/nonexistent/somnus-nowhere';
+    fs.writeFileSync(config, JSON.stringify(data, null, 2));
+    assert.equal(await run('doctor', '--somnus', somnus, '--host', 'droid'), 1, lines.join('\n'));
+    assert.ok(lines.some((l) => l.startsWith('FAIL droid: MCP') && l.includes('failed')), lines.join('\n'));
+
+    fs.writeFileSync(path.join(home, '.codex', 'config.toml'),
+      `${ORIGINAL_TOML}# >>> somnus-metadata-plugin (managed block; reinstall or uninstall with somnus-plugin)\n`
+      + '[mcp_servers.somnus-metadata]\ncommand = (broken\n'
+      + `# <<< somnus-metadata-plugin\n`);
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0, lines.join('\n'));
+    const healed = hostFor('codex', { home, env: {} }).entry();
+    assert.equal(healed.command, somnus);
+    assert.deepEqual(healed.args, ['--actor', 'codex', 'mcp']);
   });
 });
 

@@ -22,7 +22,8 @@ Requires Node.js 18.17+ and `somnus` 2.1.0+.
 ```sh
 npx github:calisweetleaf/somnus-metadata-plugin install            # every host present
 npx github:calisweetleaf/somnus-metadata-plugin install --host codex,droid --dry-run
-npx github:calisweetleaf/somnus-metadata-plugin doctor             # live MCP handshake per host
+npx github:calisweetleaf/somnus-metadata-plugin doctor             # skill-drift check + live MCP handshake per host
+npx github:calisweetleaf/somnus-metadata-plugin hosts              # list supported hosts and install status
 npx github:calisweetleaf/somnus-metadata-plugin uninstall
 ```
 
@@ -33,16 +34,23 @@ Without the backend, add `--install-backend somnus-metadata` (or a source checko
 
 - Every edited config is backed up to `<file>.bak-somnus-plugin-<UTC stamp>` before it changes;
   unchanged configs are not rewritten.
-- Codex edits stay inside a marked block; a `[mcp_servers.somnus-metadata]` table defined
-  elsewhere is refused rather than overwritten.
-- Directories carry a `.somnus-plugin.json` marker. Install refuses to replace, and uninstall
-  leaves, any directory without it (`--force` replaces one deliberately).
+- Codex edits stay inside a marked block, preserve existing `CRLF`/`LF` line endings, and restore
+  even files without a trailing newline byte-for-byte on `uninstall`; a `[mcp_servers.somnus-metadata]`
+  table defined elsewhere is refused rather than overwritten.
+- Directories carry a `.somnus-plugin.json` marker (recording `plugin`, `version`, `skillHash`, and
+  `installedAt`). Install refuses to replace, and uninstall leaves, any directory without it (`--force`
+  replaces one deliberately). `doctor` hashes each installed skill tree (`SHA-256` over sorted
+  slash-normalized relative paths, excluding `.somnus-plugin.json`) against the packaged skill and
+  reports `FAIL` on content drift.
+- On Windows (`win32`), `.cmd`/`.bat` tool wrappers (`somnus.cmd`, `uv.cmd`, `pipx.cmd`) are spawned
+  through `spawnForm()` with `shell: true` and whitespace-quoted arguments so Node.js 18.20+ does not
+  fail with `EINVAL` during backend checks, installs, or MCP handshakes.
 - Uninstall removes only what install added; the backend and registry stay.
 
 ## Develop
 
 ```sh
-npm test        # node --test; uses a fake somnus and a temporary home
+npm test        # node --test (18 tests); uses a fake somnus and a temporary home
 ```
 
 The skill lives in `skills/somnus-metadata/` (`SKILL.md` plus `references/`).
