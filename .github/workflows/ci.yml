@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The suite's fake somnus is a shebang script, so it runs on POSIX hosts;
+        # Windows spawning is covered by spawnForm unit tests with a mocked platform.
+        os: [ubuntu-latest, macos-latest]
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Unit tests (no dependencies to install)
+        run: npm test
+      - name: CLI starts and prints usage
+        run: node bin/somnus-plugin.mjs help
