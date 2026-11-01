@@ -6,8 +6,13 @@ It installs one skill and registers the `somnus-metadata` MCP server in each age
 | Host | Skill | MCP server |
 | --- | --- | --- |
 | Factory Droid | `~/.factory/skills/somnus-metadata/` | `mcpServers.somnus-metadata` in `~/.factory/mcp.json` |
-| Codex | `$CODEX_HOME/skills/somnus-metadata/` (default `~/.codex`) | managed `[mcp_servers.somnus-metadata]` block in `config.toml` |
-| Google Antigravity | inside the plugin | plugin `~/.gemini/config/plugins/somnus-metadata/` (`plugin.json`, `mcp_config.json`, `skills/`) |
+| Codex | `$CODEX_HOME/skills/custom/somnus-metadata/` (default `~/.codex`) | managed `[mcp_servers.somnus-metadata]` block in `config.toml` |
+| Google Antigravity | `~/.gemini/skills/somnus-metadata/` | plugin `~/.gemini/config/plugins/somnus-metadata/` (`plugin.json`, `mcp_config.json`) |
+| OpenCode | `~/.config/opencode/skills/somnus-metadata/` | `mcp.somnus-metadata` in `opencode.jsonc` or `opencode.json` |
+
+Upgrading from 1.0.0 moves the skill out of the old Codex location (`~/.codex/skills/somnus-metadata/`)
+and the old Antigravity plugin `skills/` copy, but only when the old directory carries this tool's marker.
+An `opencode.jsonc` that contains comments is never rewritten; install prints the entry to paste instead.
 
 Layering: the Python backend (`somnus-metadata` on PyPI, command `somnus`) owns all behavior.
 The CLI and MCP server adapt that backend, and this plugin only adapts hosts to the MCP server.
@@ -27,8 +32,11 @@ npx github:calisweetleaf/somnus-metadata-plugin hosts              # list suppor
 npx github:calisweetleaf/somnus-metadata-plugin uninstall
 ```
 
-Without the backend, add `--install-backend somnus-metadata` (or a source checkout path) to run
-`uv tool install --force` first (pipx when uv is absent). Restart each host after installing.
+Install the backend with `pip install -U somnus-metadata` in a virtual environment on PATH
+(`uv tool install somnus-metadata` and `pipx install somnus-metadata` also work). Or add
+`--install-backend somnus-metadata` (or a source checkout path): it runs
+`pip install --upgrade` first and falls back to `uv tool`, then `pipx`, if pip is missing or
+refuses (PEP 668). Restart each host after installing.
 
 ## Safety
 
@@ -50,7 +58,7 @@ Without the backend, add `--install-backend somnus-metadata` (or a source checko
 ## Develop
 
 ```sh
-npm test        # node --test (18 tests); uses a fake somnus and a temporary home
+npm test        # node --test; uses a fake somnus and a temporary home
 ```
 
 The skill lives in `skills/somnus-metadata/` (`SKILL.md` plus `references/`).

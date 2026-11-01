@@ -20,7 +20,8 @@ Two equivalent surfaces reach the same backend:
 
 - **MCP server `somnus-metadata`**: one tool per command (`q`, `ls`, `check`, `stamp`, `new`,
   `set`, `status`, `bump`, `index`, `stale`, ...). Tool results are the command's text or TSV.
-- **CLI `somnus`**: identical commands and flags. Use it when you have a shell.
+- **CLI `somnus`** (alias `somnus-metadata`): identical commands and flags. Use it when you
+  have a shell. Install with `pip install -U somnus-metadata` in a venv on PATH.
 
 The live cheat sheet is `somnus brief` (MCP: `brief`); the server's instructions carry it too.
 
@@ -80,5 +81,11 @@ Exit codes: `0` ok, `1` validation errors, refusals, or conflicts, `2` usage or 
 On MCP a non-zero exit sets `isError` and the text ends with `[exit N]`. Read the diagnostic:
 it names the file, line, field, code, and usually the fix.
 
-Less common tasks (fork, regions, migration, conflicts, SQL tables) are in
-[references/recipes.md](references/recipes.md).
+## References
+
+- [references/mcp-tools.md](references/mcp-tools.md): every MCP tool, its arguments, and
+  the controlled values for types, statuses, and standing.
+- [references/recipes.md](references/recipes.md): fork, regions, migration, conflicts, and
+  registry SQL.
+- [references/setup.md](references/setup.md): installing the backend, where each host keeps
+  this skill and the MCP entry, and troubleshooting.

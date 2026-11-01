@@ -28,6 +28,7 @@ if (args.includes('mcp')) {
 
 const ORIGINAL_TOML = '[mcp_servers.other]\ncommand = "other"\n';
 const ORIGINAL_MCP = { mcpServers: { Other: { type: 'stdio', command: 'other' } } };
+const ORIGINAL_OPENCODE = { $schema: 'https://opencode.ai/config.json', model: 'm', mcp: { Other: { type: 'local', command: ['other'] } } };
 
 let home;
 let somnus;
@@ -53,6 +54,8 @@ beforeEach(() => {
   fs.mkdirSync(path.join(home, '.codex'));
   fs.writeFileSync(path.join(home, '.codex', 'config.toml'), ORIGINAL_TOML);
   fs.mkdirSync(path.join(home, '.gemini', 'config'), { recursive: true });
+  fs.mkdirSync(path.join(home, '.config', 'opencode'), { recursive: true });
+  fs.writeFileSync(path.join(home, '.config', 'opencode', 'opencode.jsonc'), JSON.stringify(ORIGINAL_OPENCODE, null, 2));
 });
 
 afterEach(() => {
@@ -72,22 +75,25 @@ describe('install, doctor, uninstall', () => {
     const toml = read('.codex', 'config.toml');
     assert.ok(toml.startsWith(ORIGINAL_TOML));
     assert.ok(toml.includes(`command = ${JSON.stringify(somnus)}\nargs = ["--actor", "codex", "mcp"]`));
-    assert.ok(exists('.codex', 'skills', 'somnus-metadata', 'SKILL.md'));
+    assert.ok(exists('.codex', 'skills', 'custom', 'somnus-metadata', 'SKILL.md'));
     const plugin = path.join('.gemini', 'config', 'plugins', 'somnus-metadata');
     assert.equal(JSON.parse(read(plugin, 'plugin.json')).name, 'somnus-metadata');
     assert.deepEqual(JSON.parse(read(plugin, 'mcp_config.json')).mcpServers['somnus-metadata'].args,
       ['--actor', 'antigravity', 'mcp']);
-    assert.ok(exists(plugin, 'skills', 'somnus-metadata', 'SKILL.md'));
+    assert.ok(exists('.gemini', 'skills', 'somnus-metadata', 'SKILL.md'));
+    assert.ok(!exists(plugin, 'skills'), 'the Antigravity plugin carries only the MCP server');
 
     assert.equal(await run('doctor', '--somnus', somnus), 0, lines.join('\n'));
-    assert.equal(lines.filter((l) => l.includes('serves 3 tools (somnus 2.1.0)')).length, 3, lines.join('\n'));
+    assert.equal(lines.filter((l) => l.includes('serves 3 tools (somnus 2.1.0)')).length, 4, lines.join('\n'));
     assert.ok(lines.includes('all checks passed'));
 
     assert.equal(await run('uninstall'), 0, lines.join('\n'));
     assert.equal(read('.codex', 'config.toml'), ORIGINAL_TOML);
     assert.deepEqual(JSON.parse(read('.factory', 'mcp.json')), ORIGINAL_MCP);
     assert.ok(!exists('.factory', 'skills', 'somnus-metadata'));
-    assert.ok(!exists('.codex', 'skills', 'somnus-metadata'));
+    assert.ok(!exists('.codex', 'skills', 'custom', 'somnus-metadata'));
+    assert.ok(!exists('.gemini', 'skills', 'somnus-metadata'));
+    assert.ok(!exists('.config', 'opencode', 'skills', 'somnus-metadata'));
     assert.ok(!exists(plugin));
   });
 
@@ -110,7 +116,7 @@ describe('install, doctor, uninstall', () => {
 
   it('limits work to --host', async () => {
     assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0);
-    assert.ok(exists('.codex', 'skills', 'somnus-metadata'));
+    assert.ok(exists('.codex', 'skills', 'custom', 'somnus-metadata'));
     assert.ok(!exists('.factory', 'skills', 'somnus-metadata'));
   });
 
@@ -134,7 +140,7 @@ describe('install, doctor, uninstall', () => {
       out: (m) => lines.push(m), err: (m) => lines.push(m), env: { PATH: '' },
     });
     assert.equal(missing, 1);
-    assert.ok(lines.some((l) => l.includes("uv tool install somnus-metadata")));
+    assert.ok(lines.some((l) => l.includes("pip install somnus-metadata")));
   });
 
   it('doctor fails when nothing is installed', async () => {
@@ -173,10 +179,10 @@ describe('skill drift detection', () => {
     assert.equal(await run('doctor', '--somnus', somnus, '--host', 'droid'), 0, lines.join('\n'));
   });
 
-  it('doctor flags a drifted plugin skill copy for Antigravity too', async () => {
+  it('doctor flags a drifted Antigravity skill too', async () => {
     await run('install', '--somnus', somnus);
     fs.appendFileSync(
-      path.join(home, '.gemini', 'config', 'plugins', 'somnus-metadata', 'skills', 'somnus-metadata', 'SKILL.md'),
+      path.join(home, '.gemini', 'skills', 'somnus-metadata', 'SKILL.md'),
       '\n<!-- drift -->\n',
     );
     assert.equal(await run('doctor', '--somnus', somnus, '--host', 'antigravity'), 1, lines.join('\n'));
@@ -185,6 +191,43 @@ describe('skill drift detection', () => {
   });
 });
 
+describe('OpenCode and moved skill locations', () => {
+  it('writes an OpenCode local MCP entry and restores the config on uninstall', async () => {
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'opencode'), 0, lines.join('\n'));
+    const config = JSON.parse(read('.config', 'opencode', 'opencode.jsonc'));
+    assert.equal(config.model, ORIGINAL_OPENCODE.model);
+    assert.deepEqual(config.mcp.Other, ORIGINAL_OPENCODE.mcp.Other);
+    assert.deepEqual(config.mcp['somnus-metadata'], {
+      type: 'local', command: [somnus, '--actor', 'opencode', 'mcp'], enabled: true,
+    });
+    assert.ok(exists('.config', 'opencode', 'skills', 'somnus-metadata', 'SKILL.md'));
+    assert.equal(await run('doctor', '--somnus', somnus, '--host', 'opencode'), 0, lines.join('\n'));
+    assert.equal(await run('uninstall', '--host', 'opencode'), 0, lines.join('\n'));
+    assert.deepEqual(JSON.parse(read('.config', 'opencode', 'opencode.jsonc')), ORIGINAL_OPENCODE);
+    assert.ok(!exists('.config', 'opencode', 'skills', 'somnus-metadata'));
+  });
+
+  it('refuses to rewrite an OpenCode config with comments and prints the snippet', async () => {
+    const commented = '{\n  // my settings\n  "model": "x",\n}\n';
+    fs.writeFileSync(path.join(home, '.config', 'opencode', 'opencode.jsonc'), commented);
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'opencode'), 1);
+    assert.ok(lines.some((l) => l.includes('has comments or trailing commas') && l.includes('"somnus-metadata"')),
+      lines.join('\n'));
+    assert.equal(read('.config', 'opencode', 'opencode.jsonc'), commented);
+  });
+
+  it('moves a Codex skill this tool installed at the old location and leaves a foreign one', async () => {
+    const old = path.join(home, '.codex', 'skills', 'somnus-metadata');
+    fs.mkdirSync(old, { recursive: true });
+    fs.writeFileSync(path.join(old, '.somnus-plugin.json'), '{"plugin":"somnus-metadata-plugin"}\n');
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0, lines.join('\n'));
+    assert.ok(!fs.existsSync(old));
+    assert.ok(exists('.codex', 'skills', 'custom', 'somnus-metadata', 'SKILL.md'));
+    fs.mkdirSync(old, { recursive: true });
+    assert.equal(await run('install', '--somnus', somnus, '--host', 'codex'), 0, lines.join('\n'));
+    assert.ok(fs.existsSync(old), 'a directory without the marker is not ours to remove');
+  });
+});
 describe('codex config formatting edge cases', () => {
   it('preserves CRLF line endings inside and outside the managed block', async () => {
     const crlf = ORIGINAL_TOML.replace(/\n/g, '\r\n');
