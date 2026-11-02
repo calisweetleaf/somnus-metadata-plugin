@@ -1,3 +1,35 @@
+---
+somnus:
+  schema: "somnus://metadata/core/2.0.0"
+  id: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
+  revision: 1
+  title: "MCP tool reference"
+  classification:
+    category: "engineering"
+    type: "report"
+    role: "informative"
+    scope: "component"
+    tags: []
+  lifecycle:
+    status: "draft"
+  authority:
+    standing: "candidate"
+    scopes:
+      - target_ref: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
+        aspects: ["content"]
+  time: {}
+  names:
+    slug: "mcp-tool-reference"
+  knowledge:
+    coverage: "artifact"
+    subjects: ["urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"]
+  access:
+    visibility: "internal"
+    allowed_uses: ["archive", "search", "reason"]
+  ingestion:
+    disposition: "candidate"
+    body_role: "narrative"
+---
 # MCP tool reference
 
 The `somnus-metadata` MCP server (`somnus mcp`, stdio JSON-RPC) exposes 16 tools, one per

@@ -7,6 +7,37 @@ description: >-
   wants tracked; and record header, lifecycle, and revision changes through its commands
   instead of hand-editing metadata. Applies to any file type (Markdown, code, config, or a
   sidecar for anything else) under a registered root.
+somnus:
+  schema: "somnus://metadata/core/2.0.0"
+  id: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
+  revision: 2
+  title: "Somnus Metadata"
+  classification:
+    category: "engineering"
+    type: "report"
+    role: "informative"
+    scope: "component"
+    tags: []
+  lifecycle:
+    status: "draft"
+  authority:
+    standing: "candidate"
+    scopes:
+      - target_ref: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
+        aspects: ["content"]
+  time:
+    updated_at: "2026-11-02T04:02:01+00:00"
+  names:
+    slug: "somnus-metadata"
+  knowledge:
+    coverage: "artifact"
+    subjects: ["urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"]
+  access:
+    visibility: "internal"
+    allowed_uses: ["archive", "search", "reason"]
+  ingestion:
+    disposition: "candidate"
+    body_role: "narrative"
 ---
 
 # Somnus Metadata
@@ -46,6 +77,9 @@ The live cheat sheet is `somnus brief` (MCP: `brief`); the server's instructions
   next `index` opens a revision conflict.
 - `role: normative` is intent, not acceptance. Only `authority.standing: accepted` is authoritative.
 - With MCP, **pass absolute paths**. Relative paths resolve from the server's directory.
+- **Use `tsv: true` for MCP queries and listings when an agent needs complete paths or fields.**
+  Human-readable tables truncate long cells with `…`; TSV preserves their full values.
+  The CLI equivalent is `--tsv`. Never guess the missing suffix of a truncated path.
 
 ## Core workflows
 

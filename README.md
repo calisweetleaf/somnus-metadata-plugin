@@ -1,3 +1,35 @@
+---
+somnus:
+  schema: "somnus://metadata/core/2.0.0"
+  id: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
+  revision: 1
+  title: "somnus-metadata-plugin"
+  classification:
+    category: "context"
+    type: "index"
+    role: "informative"
+    scope: "component"
+    tags: []
+  lifecycle:
+    status: "draft"
+  authority:
+    standing: "candidate"
+    scopes:
+      - target_ref: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
+        aspects: ["content"]
+  time: {}
+  names:
+    slug: "somnus-metadata-plugin"
+  knowledge:
+    coverage: "artifact"
+    subjects: ["urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"]
+  access:
+    visibility: "internal"
+    allowed_uses: ["archive", "search", "reason"]
+  ingestion:
+    disposition: "candidate"
+    body_role: "narrative"
+---
 # somnus-metadata-plugin
 
 Private agent adapter for [Somnus Metadata](https://github.com/calisweetleaf/somnus-metadata).

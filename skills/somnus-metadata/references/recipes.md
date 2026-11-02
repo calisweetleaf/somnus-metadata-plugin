@@ -1,3 +1,35 @@
+---
+somnus:
+  schema: "somnus://metadata/core/2.0.0"
+  id: "urn:somnus:artifact:01a19a69-8838-72f8-b84b-a5aed33310c5"
+  revision: 1
+  title: "Somnus Metadata recipes"
+  classification:
+    category: "engineering"
+    type: "report"
+    role: "informative"
+    scope: "component"
+    tags: []
+  lifecycle:
+    status: "draft"
+  authority:
+    standing: "candidate"
+    scopes:
+      - target_ref: "urn:somnus:artifact:01a19a69-8838-72f8-b84b-a5aed33310c5"
+        aspects: ["content"]
+  time: {}
+  names:
+    slug: "somnus-metadata-recipes"
+  knowledge:
+    coverage: "artifact"
+    subjects: ["urn:somnus:artifact:01a19a69-8838-72f8-b84b-a5aed33310c5"]
+  access:
+    visibility: "internal"
+    allowed_uses: ["archive", "search", "reason"]
+  ingestion:
+    disposition: "candidate"
+    body_role: "narrative"
+---
 # Somnus Metadata recipes
 
 ## Derive a new artifact from an existing one
