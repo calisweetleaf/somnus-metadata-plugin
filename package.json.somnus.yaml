@@ -1,7 +1,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-880c-70c5-b991-819ecf26d415"
-  revision: 2
+  revision: 3
   title: "Package"
   classification:
     category: "research"
@@ -17,7 +17,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-880c-70c5-b991-819ecf26d415"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T05:37:28+00:00"
+    updated_at: "2026-11-02T06:19:34+00:00"
   names:
     slug: "package"
   knowledge:

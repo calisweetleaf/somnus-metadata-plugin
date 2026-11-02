@@ -1,0 +1,19 @@
+{
+  "name": "somnus-metadata-plugin",
+  "version": "1.2.0",
+  "description": "Local-first Somnus Metadata registry, search and revision workflows for coding agents.",
+  "author": {
+    "name": "calisweetleaf"
+  },
+  "repository": "https://github.com/calisweetleaf/somnus-metadata-plugin",
+  "skills": "./skills/",
+  "mcpServers": "./mcp.json",
+  "interface": {
+    "displayName": "Somnus Metadata",
+    "shortDescription": "Local metadata registry",
+    "longDescription": "Use the globally installed somnus-metadata Python package through MCP and a shared operational skill. Search managed files, preserve host content, validate metadata and record revisions.",
+    "developerName": "calisweetleaf",
+    "category": "Developer Tools",
+    "capabilities": []
+  }
+}

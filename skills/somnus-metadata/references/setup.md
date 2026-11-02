@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
-  revision: 2
+  revision: 3
   title: "Setup and troubleshooting"
   classification:
     category: "engineering"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T05:37:28+00:00"
+    updated_at: "2026-11-02T06:19:34+00:00"
   names:
     slug: "setup-and-troubleshooting"
   knowledge:
@@ -54,7 +54,23 @@ somnus --version
 `uv tool install somnus-metadata` and `pipx install somnus-metadata` work too. On a
 system Python that refuses `pip install` (PEP 668, "externally managed"), use a venv.
 
-## Where the plugin puts things
+## Native plugin registration versus direct adapters
+
+A skill file plus MCP entry is a direct adapter, not an installed native plugin.
+For a native Codex installation, register the package's marketplace and run
+`codex plugin add somnus-metadata-plugin@somnus-metadata-plugin`; verify
+`codex plugin list --json` reports `installed: true` and `enabled: true`.
+For Factory, register the same checkout with `droid plugin marketplace add`, then
+`droid plugin install somnus-metadata-plugin@somnus-metadata-plugin --scope user`;
+verify `droid plugin list --scope user`. See the package README for complete commands.
+The shared native MCP config invokes the global `somnus` executable on PATH.
+Codex and Factory manage native caches; never hand-copy into or wipe their caches.
+Use native remove/uninstall and install when a clean refresh is needed.
+The direct installer/doctor below tests compatibility copies and MCP handshakes,
+not native plugin registration. A working tool call is not a substitute for the
+host's installed/enabled plugin record.
+
+## Where the direct adapter puts things
 
 `somnus-plugin install` copies this skill and registers the MCP server `somnus-metadata`
 for each host it finds:

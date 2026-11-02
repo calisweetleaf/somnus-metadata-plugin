@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
-  revision: 2
+  revision: 4
   title: "somnus-metadata-plugin"
   classification:
     category: "context"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T05:37:28+00:00"
+    updated_at: "2026-11-02T06:22:41+00:00"
   names:
     slug: "somnus-metadata-plugin"
   knowledge:
@@ -35,7 +35,39 @@ somnus:
 
 Host-agnostic skill and adapter package for [Somnus Metadata](https://github.com/calisweetleaf/somnus-metadata).
 Factory Droid, Codex, Antigravity, and OpenCode are peer consumers, not owners of the system.
-It installs the same operational skill and registers the `somnus-metadata` MCP server in each agent host:
+Native plugin packages for Codex and Factory share the same skill and portable
+`mcp.json`. Install them through the host's plugin manager to get a real installed
+plugin entry. The Node CLI below remains a direct skill/MCP compatibility adapter;
+its successful doctor check is **not** proof of native plugin registration.
+
+## Native Codex and Factory installation
+
+Prerequisite: the global pip-installed `somnus` executable must be on the host's PATH.
+From a local checkout (replace the path with your checkout):
+
+```sh
+codex plugin marketplace add /absolute/path/to/somnus-metadata-plugin
+codex plugin add somnus-metadata-plugin@somnus-metadata-plugin
+codex plugin list --json
+
+droid plugin marketplace add /absolute/path/to/somnus-metadata-plugin
+droid plugin install somnus-metadata-plugin@somnus-metadata-plugin --scope user
+droid plugin list --scope user
+```
+
+This release declares no hooks. Codex and Factory have different hook contracts;
+no Codex hooks are copied into Factory, and no global hook settings are changed.
+Any future hook must be implemented and tested against its host's own event payloads.
+
+Both use marketplace ID `somnus-metadata-plugin`. Codex owns its versioned copy
+under `$CODEX_HOME/plugins/cache/`; Factory owns its cache under `~/.factory/plugins/cache/`.
+Use `codex plugin remove` / `droid plugin uninstall` followed by native install for
+a clean refresh. Do not clear unrelated caches. Native MCP calls identify their actor
+as `somnus-metadata-plugin`; the direct adapters below retain per-host actors.
+
+## Direct adapters (compatibility installation)
+
+These copy the shared skill and register MCP directly, outside the native plugin managers:
 
 | Host | Skill | MCP server |
 | --- | --- | --- |
@@ -56,10 +88,10 @@ then reinstall and verify the affected hosts. The skill is part of the delivered
 not optional documentation; agents need its retrieval, revision, and preservation workflows.
 The adapter launches the installed Python executable, not this repository or a backend
 source checkout. A source edit alone does not update the global pip installation.
-Each host runs `somnus --actor <host> mcp`, so the registry's event ledger records which agent
-made each change.
+Each direct adapter runs `somnus --actor <host> mcp`, so its registry events retain
+host attribution. Native packages use the shared plugin actor described above.
 
-## Use
+## Direct adapter commands
 
 Requires Node.js 18.17+ and `somnus` 2.1.0+. Use backend 2.1.1+ for complete unmanaged
 file discovery, including files that require sidecars.

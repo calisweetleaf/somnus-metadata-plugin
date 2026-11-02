@@ -10,7 +10,7 @@ description: >-
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
-  revision: 3
+  revision: 4
   title: "Somnus Metadata"
   classification:
     category: "engineering"
@@ -26,7 +26,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T05:37:28+00:00"
+    updated_at: "2026-11-02T06:19:34+00:00"
   names:
     slug: "somnus-metadata"
   knowledge:
@@ -62,8 +62,10 @@ This skill is the shared usage layer for Factory Droid, Codex, Antigravity, Open
 and other compatible agents. No host owns the system. The separately installed Python
 package owns behavior; the plugin distributes this skill and registers host adapters.
 Use the installed executable or MCP tools, not a developer checkout's source path.
-A source update is not an installed-backend update, and an installed adapter is not proof
-that a live agent has used it. Check the backend version and exercise the relevant tool.
+A source update is not an installed-backend update. A direct skill/MCP adapter is not
+a native plugin installation: check the host's installed/enabled plugin list separately.
+Neither installation record proves live use. Check the backend version and exercise the
+relevant tool; see setup for native versus compatibility installation.
 
 The skill supplies proactive retrieval and maintenance habits, not permission to modify
 unrelated files or mass-adopt a user's machine. Respect the current task and root exclusions.

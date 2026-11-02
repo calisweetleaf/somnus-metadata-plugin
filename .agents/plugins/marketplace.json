@@ -1,0 +1,20 @@
+{
+  "name": "somnus-metadata-plugin",
+  "interface": {
+    "displayName": "Somnus Metadata"
+  },
+  "plugins": [
+    {
+      "name": "somnus-metadata-plugin",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

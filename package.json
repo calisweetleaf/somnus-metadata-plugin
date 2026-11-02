@@ -1,6 +1,6 @@
 {
   "name": "somnus-metadata-plugin",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "description": "Installs the Somnus Metadata skill and MCP server into agent hosts: Factory Droid, Codex, Google Antigravity, and OpenCode.",
   "type": "module",
@@ -8,6 +8,11 @@
     "somnus-plugin": "bin/somnus-plugin.mjs"
   },
   "files": [
+    "plugin.json",
+    "mcp.json",
+    ".codex-plugin",
+    ".factory-plugin",
+    ".agents",
     "bin",
     "lib",
     "skills",
