@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "somnus-metadata-plugin",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Local-first Somnus Metadata registry, search and revision workflows for coding agents.",
   "author": {
     "name": "calisweetleaf"

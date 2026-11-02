@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
-  revision: 4
+  revision: 5
   title: "somnus-metadata-plugin"
   classification:
     category: "context"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T06:22:41+00:00"
+    updated_at: "2026-11-02T06:47:14+00:00"
   names:
     slug: "somnus-metadata-plugin"
   knowledge:
@@ -58,6 +58,15 @@ droid plugin list --scope user
 This release declares no hooks. Codex and Factory have different hook contracts;
 no Codex hooks are copied into Factory, and no global hook settings are changed.
 Any future hook must be implemented and tested against its host's own event payloads.
+
+The native catalogs select the checked-in production payload at
+`native/somnus-metadata-plugin/`, not this development checkout's root. That payload
+contains only the manifests, MCP configuration and canonical shared skill/reference
+copies. Repository indexing sidecars, package.json, .gitignore and Node adapter code
+are not runtime plugin assets and are not shipped in the native installation.
+Run `npm run build:native` after changing runtime manifests or skills; `npm test`
+rejects stale or unexpected exported files. No metadata is stripped from source:
+Markdown keeps its embedded frontmatter and code keeps its comment envelopes.
 
 Both use marketplace ID `somnus-metadata-plugin`. Codex owns its versioned copy
 under `$CODEX_HOME/plugins/cache/`; Factory owns its cache under `~/.factory/plugins/cache/`.

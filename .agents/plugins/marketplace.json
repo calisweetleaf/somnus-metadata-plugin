@@ -8,7 +8,7 @@
       "name": "somnus-metadata-plugin",
       "source": {
         "source": "local",
-        "path": "./"
+        "path": "./native/somnus-metadata-plugin"
       },
       "policy": {
         "installation": "AVAILABLE",

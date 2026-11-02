@@ -8,7 +8,7 @@
     {
       "name": "somnus-metadata-plugin",
       "description": "Local-first Somnus Metadata registry, search and revision workflows for coding agents.",
-      "source": "./",
+      "source": "./native/somnus-metadata-plugin",
       "category": "Developer Tools"
     }
   ]
