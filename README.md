@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
-  revision: 1
+  revision: 2
   title: "somnus-metadata-plugin"
   classification:
     category: "context"
@@ -17,7 +17,8 @@ somnus:
     scopes:
       - target_ref: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
         aspects: ["content"]
-  time: {}
+  time:
+    updated_at: "2026-11-02T05:37:28+00:00"
   names:
     slug: "somnus-metadata-plugin"
   knowledge:
@@ -32,8 +33,9 @@ somnus:
 ---
 # somnus-metadata-plugin
 
-Private agent adapter for [Somnus Metadata](https://github.com/calisweetleaf/somnus-metadata).
-It installs one skill and registers the `somnus-metadata` MCP server in each agent host:
+Host-agnostic skill and adapter package for [Somnus Metadata](https://github.com/calisweetleaf/somnus-metadata).
+Factory Droid, Codex, Antigravity, and OpenCode are peer consumers, not owners of the system.
+It installs the same operational skill and registers the `somnus-metadata` MCP server in each agent host:
 
 | Host | Skill | MCP server |
 | --- | --- | --- |
@@ -48,13 +50,19 @@ An `opencode.jsonc` that contains comments is never rewritten; install prints th
 
 Layering: the Python backend (`somnus-metadata` on PyPI, command `somnus`) owns all behavior.
 The CLI and MCP server adapt that backend, and this plugin only adapts hosts to the MCP server.
-It holds no metadata logic, so a backend release never requires a plugin release.
+It holds no metadata logic: a backend-only fix does not by itself require adapter-code changes.
+When backend behavior changes usage, update this package's shared skill and references,
+then reinstall and verify the affected hosts. The skill is part of the delivered capability,
+not optional documentation; agents need its retrieval, revision, and preservation workflows.
+The adapter launches the installed Python executable, not this repository or a backend
+source checkout. A source edit alone does not update the global pip installation.
 Each host runs `somnus --actor <host> mcp`, so the registry's event ledger records which agent
 made each change.
 
 ## Use
 
-Requires Node.js 18.17+ and `somnus` 2.1.0+.
+Requires Node.js 18.17+ and `somnus` 2.1.0+. Use backend 2.1.1+ for complete unmanaged
+file discovery, including files that require sidecars.
 
 ```sh
 npx github:calisweetleaf/somnus-metadata-plugin install            # every host present

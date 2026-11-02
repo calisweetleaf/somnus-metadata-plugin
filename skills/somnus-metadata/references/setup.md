@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
-  revision: 1
+  revision: 2
   title: "Setup and troubleshooting"
   classification:
     category: "engineering"
@@ -17,7 +17,8 @@ somnus:
     scopes:
       - target_ref: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
         aspects: ["content"]
-  time: {}
+  time:
+    updated_at: "2026-11-02T05:37:28+00:00"
   names:
     slug: "setup-and-troubleshooting"
   knowledge:
@@ -36,6 +37,13 @@ somnus:
 
 The backend is the `somnus-metadata` package on PyPI (stdlib only, Python 3.11+). It installs
 two identical commands: `somnus` and `somnus-metadata`.
+
+The plugin is a separate host-agnostic distribution of this skill plus MCP configuration.
+Factory Droid, Codex, Antigravity, and OpenCode use the same backend and registry; a
+host-specific adapter does not make the system host-specific. Install or upgrade the
+Python package separately from editing its source checkout. For all-file discovery use
+backend 2.1.1 or newer. Re-run the plugin installer after changing packaged skills so
+all installed hosts receive the same operational guidance; doctor verifies copy fidelity.
 
 ```sh
 python3 -m venv ~/.venvs/global          # once; put ~/.venvs/global/bin on PATH

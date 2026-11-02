@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
-  revision: 1
+  revision: 2
   title: "MCP tool reference"
   classification:
     category: "engineering"
@@ -17,7 +17,8 @@ somnus:
     scopes:
       - target_ref: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
         aspects: ["content"]
-  time: {}
+  time:
+    updated_at: "2026-11-02T05:38:17+00:00"
   names:
     slug: "mcp-tool-reference"
   knowledge:
@@ -39,6 +40,8 @@ TSV; a non-zero exit sets `isError` and the text ends with `[exit N]`.
 
 Pass absolute paths. The server resolves relative paths from its own working directory,
 which is usually not the project you are in.
+For agent-readable query/list output, add `tsv: true` (CLI: `--tsv`): human tables
+truncate long paths and fields. Do not reconstruct a truncated path by guessing.
 
 ## Read-only tools
 
@@ -85,7 +88,7 @@ which is usually not the project you are in.
 ## Example calls
 
 ```json
-{"name": "q", "arguments": {"text": "registry recovery", "limit": 5}}
+{"name": "q", "arguments": {"text": "registry recovery", "limit": 5, "tsv": true}}
 {"name": "stamp", "arguments": {"paths": ["/home/me/proj/notes/design.md"], "write": true}}
 {"name": "set", "arguments": {"path": "/home/me/proj/PLAN.md", "assignments": ["classification.tags=roadmap, q4"], "reason": "tag for search"}}
 {"name": "status", "arguments": {"path": "/home/me/proj/PLAN.md", "new_status": "active", "reason": "approved"}}

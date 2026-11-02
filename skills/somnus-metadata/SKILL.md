@@ -10,7 +10,7 @@ description: >-
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
-  revision: 2
+  revision: 3
   title: "Somnus Metadata"
   classification:
     category: "engineering"
@@ -26,7 +26,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T04:02:01+00:00"
+    updated_at: "2026-11-02T05:37:28+00:00"
   names:
     slug: "somnus-metadata"
   knowledge:
@@ -56,13 +56,27 @@ Two equivalent surfaces reach the same backend:
 
 The live cheat sheet is `somnus brief` (MCP: `brief`); the server's instructions carry it too.
 
+## Host-agnostic operating contract
+
+This skill is the shared usage layer for Factory Droid, Codex, Antigravity, OpenCode,
+and other compatible agents. No host owns the system. The separately installed Python
+package owns behavior; the plugin distributes this skill and registers host adapters.
+Use the installed executable or MCP tools, not a developer checkout's source path.
+A source update is not an installed-backend update, and an installed adapter is not proof
+that a live agent has used it. Check the backend version and exercise the relevant tool.
+
+The skill supplies proactive retrieval and maintenance habits, not permission to modify
+unrelated files or mass-adopt a user's machine. Respect the current task and root exclusions.
+
 ## Be proactively useful
 
 - **Search before you create.** Before writing any new document, run `q --text "key words"`
   (every word must match; `word*` is a prefix). If something relevant exists, extend or fork it.
 - **Answer "where is / what do we know about X" from the registry first**: `q --text`, then
   `ls --tag T`, `ls --type T`, or `ls --path-contains P`.
-- **After you edit a managed file, validate it**: `check PATH --level semantic`.
+- **After you edit a managed file, record the revision and validate it**:
+  `bump PATH --reason "what changed"`, then `check PATH --level semantic`.
+  Do not bump again when the owning metadata command already created the revision.
 - **When the user wants files tracked or searchable, adopt them** (see Adopt below).
 - **At the end of substantial doc work, check health**: `stale` and `q --conflicts`.
 
@@ -84,13 +98,23 @@ The live cheat sheet is `somnus brief` (MCP: `brief`); the server's instructions
 ## Core workflows
 
 **First run.** If a command says the registry does not exist, run `init --root /abs/project`.
-Register more projects with `init --root DIR`, then `index`.
+Register more projects with `init --root DIR`, then `index`. Inspect existing roots first;
+do not register a child of an already registered root just to scan that project.
+Review exclusions before broad adoption. An unmanaged file is discovered, not yet searchable;
+a search miss is not evidence of absence while the relevant root is unregistered or unmanaged.
 
 **Adopt an existing file (any type).**
 1. `stamp /abs/file` shows the header it would add (dry run).
 2. `stamp /abs/file --write` writes it (add `--type T --title "..."` to override inference).
    Files without an embedded carrier get a `<file>.somnus.yaml` sidecar.
-3. The file is now in the registry and searchable. `index` lists remaining unmanaged files.
+3. The file is now in the registry and searchable. `index` reports remaining unmanaged files
+   (its examples are bounded, not an exhaustive path list). Backend 2.1.1+ discovers
+   unmanaged sidecar-only hosts too, including JSON, text and binaries.
+
+For immutable originals, signed/hash-bound baselines, or live source, do not blindly stamp
+an inline envelope. The standard permits a sidecar even for supported source extensions;
+use a verified backend-owned preservation workflow, or leave that host untouched and report
+it. Never invent a sidecar payload or assume the CLI exposes a forced-sidecar flag.
 
 **Create a new document.** `new TYPE "Title" --dir /abs/dir` (types: specification, plan,
 decision-record, runbook, report, notepad, architecture-record, whitepaper, task, memory, ...).
