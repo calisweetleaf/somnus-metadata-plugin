@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
-  revision: 2
+  revision: 3
   title: "MCP tool reference"
   classification:
     category: "engineering"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-8828-754a-9252-818248ed7990"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T05:38:17+00:00"
+    updated_at: "2026-11-06T08:17:31+00:00"
   names:
     slug: "mcp-tool-reference"
   knowledge:
@@ -33,8 +33,8 @@ somnus:
 ---
 # MCP tool reference
 
-The `somnus-metadata` MCP server (`somnus mcp`, stdio JSON-RPC) exposes 16 tools, one per
-non-interactive CLI command. Arguments mirror the CLI flags with `-` replaced by `_`. Every
+The `somnus-metadata` MCP server (`somnus mcp`, stdio JSON-RPC) exposes 17 tools, one per
+non-interactive CLI command (`edit` and the long-running `watch` are excluded). Arguments mirror the CLI flags with `-` replaced by `_`. Every
 tool also accepts `tsv: true` for tab-separated output. Results are the command's text or
 TSV; a non-zero exit sets `isError` and the text ends with `[exit N]`.
 
@@ -52,6 +52,7 @@ truncate long paths and fields. Do not reconstruct a truncated path by guessing.
 | `check` | `paths[]`, `all`, `level` (`carrier`, `core`, `semantic`, `canon`) | Validate files and print diagnostics. |
 | `stale` | `days` | Stale drafts, superseded without replacement, missing files, near-duplicates, conflicts. |
 | `brief` | (none) | The Markdown cheat sheet. |
+| `daemon` | `action` (`status`) | Watcher heartbeat: running or not, roots, stamped, revised, errors. Other actions (`install`, `uninstall`, `stop`, `once`) change the machine; use them only when the operator asks. |
 
 ## Tools that write files or the registry
 
@@ -59,14 +60,14 @@ truncate long paths and fields. Do not reconstruct a truncated path by guessing.
 | --- | --- | --- | --- |
 | `init` | (none) | `root[]` | Create `$SOMNUS_HOME`, config, registry; register roots. |
 | `index` | (none) | `roots[]`, `full` | Reconcile roots into the registry. |
-| `stamp` | `paths[]` | `write`, `type`, `title` | Adopt unmanaged files. Dry-run diff unless `write: true`. |
+| `stamp` | `paths[]` | `write`, `type`, `title`, `inline` | Adopt unmanaged files. Dry-run diff unless `write: true`; `inline` embeds plain JSON objects as `"$somnus"`. |
 | `new` | `type`, `title` | `dir`, `carrier` (`frontmatter`, `html-comment`), `status`, `force` | Scaffold a conformant Markdown artifact. |
 | `set` | `path`, `assignments[]` | `reason` | Edit header fields; one new revision. |
 | `status` | `path`, `new_status` | `reason`, `replacement[]` | Validated lifecycle transition. |
 | `bump` | `path` | `reason` | New revision; resolves `revision` and `identity` conflicts. |
 | `fork` | `path` | `out`, `title` | New identity derived from the current revision. |
 | `regions` | `path` | `sync`, `write` | Audit region markers; `sync` + `write` registers them. |
-| `migrate` | `paths[]` | `write` | Upgrade v0.1 documents. Dry-run diff unless `write: true`. |
+| `migrate` | `paths[]` | `write`, `inline`, `json_key` | Upgrade v0.1 documents, or with `inline` move old sidecars into their hosts. Dry-run diff unless `write: true`. |
 | `schema` | (none) | `field`, `json_schema`, `out` | Field docs; `json_schema` + `out` writes a JSON Schema file. |
 
 `set` assignments are `field=value` strings. Editable fields: `title`, `summary`, `purpose`,

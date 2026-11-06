@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
-  revision: 5
+  revision: 6
   title: "somnus-metadata-plugin"
   classification:
     category: "context"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-87b3-76bf-bbae-83b732aa9e46"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T06:47:14+00:00"
+    updated_at: "2026-11-06T08:17:30+00:00"
   names:
     slug: "somnus-metadata-plugin"
   knowledge:
@@ -103,7 +103,8 @@ host attribution. Native packages use the shared plugin actor described above.
 ## Direct adapter commands
 
 Requires Node.js 18.17+ and `somnus` 2.1.0+. Use backend 2.1.1+ for complete unmanaged
-file discovery, including files that require sidecars.
+file discovery, and 2.2.0+ for universal inline carriers and the 24/7 watcher
+(`install --watch` registers it as a user service; `doctor` reports whether it is running).
 
 ```sh
 npx github:calisweetleaf/somnus-metadata-plugin install            # every host present

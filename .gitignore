@@ -1,3 +1,36 @@
+# somnus:metadata:v2
+# somnus:
+#   schema: "somnus://metadata/core/2.0.0"
+#   id: "urn:somnus:artifact:01a19a69-87a3-746e-ae32-968e67b6bd06"
+#   revision: 2
+#   title: ".gitignore"
+#   classification:
+#     category: "engineering"
+#     type: "asset"
+#     role: "informative"
+#     scope: "component"
+#     tags: []
+#   lifecycle:
+#     status: "draft"
+#   authority:
+#     standing: "candidate"
+#     scopes:
+#       - target_ref: "urn:somnus:artifact:01a19a69-87a3-746e-ae32-968e67b6bd06"
+#         aspects: ["content"]
+#   time:
+#     updated_at: "2026-11-06T08:17:32+00:00"
+#   names:
+#     slug: "gitignore"
+#   knowledge:
+#     coverage: "artifact"
+#     subjects: ["urn:somnus:artifact:01a19a69-87a3-746e-ae32-968e67b6bd06"]
+#   access:
+#     visibility: "internal"
+#     allowed_uses: ["archive", "search", "reason"]
+#   ingestion:
+#     disposition: "candidate"
+#     body_role: "mixed"
+# somnus:end
 node_modules/
 *.tmp
 .surgeon/

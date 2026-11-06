@@ -2,7 +2,7 @@
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
-  revision: 3
+  revision: 4
   title: "Setup and troubleshooting"
   classification:
     category: "engineering"
@@ -18,7 +18,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-885b-72d6-9a9f-685269ecb432"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T06:19:34+00:00"
+    updated_at: "2026-11-06T08:17:31+00:00"
   names:
     slug: "setup-and-troubleshooting"
   knowledge:
@@ -42,7 +42,7 @@ The plugin is a separate host-agnostic distribution of this skill plus MCP confi
 Factory Droid, Codex, Antigravity, and OpenCode use the same backend and registry; a
 host-specific adapter does not make the system host-specific. Install or upgrade the
 Python package separately from editing its source checkout. For all-file discovery use
-backend 2.1.1 or newer. Re-run the plugin installer after changing packaged skills so
+backend 2.1.1 or newer; for universal inline carriers and the watcher, 2.2.0 or newer. Re-run the plugin installer after changing packaged skills so
 all installed hosts receive the same operational guidance; doctor verifies copy fidelity.
 
 ```sh
@@ -53,6 +53,19 @@ somnus --version
 
 `uv tool install somnus-metadata` and `pipx install somnus-metadata` work too. On a
 system Python that refuses `pip install` (PEP 668, "externally managed"), use a venv.
+
+## Run the watcher 24/7 (backend 2.2.0+)
+
+```sh
+somnus init --root /abs/project        # every root you want managed
+somnus daemon install                  # systemd user unit, launchd agent, or Windows logon task
+somnus daemon status                   # running, roots, stamped, revised, errors
+loginctl enable-linger "$USER"         # Linux: keep running while logged out
+```
+
+`somnus-plugin install --watch` does the `daemon install` step for you. Settings live under
+`[watch]` in `~/.somnus/config.toml`: `stamp = "inline"` (default; never creates sidecars),
+`revise = "auto"`, `settle = 10.0`, `adopt = false`.
 
 ## Native plugin registration versus direct adapters
 
@@ -95,7 +108,9 @@ host does not depend on its own PATH. Config files are backed up before every ch
 | `doctor` reports skill drift | The installed copy differs from the plugin's. Re-run `somnus-plugin install`. |
 | OpenCode config was not changed | `opencode.jsonc` has comments, which the plugin will not rewrite. Paste the printed snippet into the `mcp` object by hand. |
 | `E_HOST` on a write | The write would change bytes outside the metadata envelope, so it was refused. The file is unchanged; report it. |
-| `index` reports a revision conflict | A managed file's body changed without a revision. Run `bump PATH --reason "..."`. |
+| `index` reports a revision conflict | A managed file's body changed without a revision. Run `bump PATH --reason "..."`, or run the watcher with `revise = "auto"`. |
+| `doctor` warns the watcher never ran | Run `somnus daemon install` (or `somnus-plugin install --watch`). |
+| New files are not stamped | The watcher only stamps files created after it started and settled for `settle` seconds; adopt older ones with `somnus daemon once --adopt` or `stamp --write`. |
 | Wrong `somnus` runs | `which -a somnus` shows every copy. Re-run `somnus-plugin install --somnus /abs/path/to/somnus`. |
 
 The registry lives at `~/.somnus/somnus.db` unless `SOMNUS_HOME` points elsewhere. Exit codes:

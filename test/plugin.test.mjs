@@ -2,7 +2,7 @@
 // somnus:
 //   schema: "somnus://metadata/core/2.0.0"
 //   id: "urn:somnus:artifact:01a19a69-8869-73d2-8d0c-7b37b16dd932"
-//   revision: 1
+//   revision: 2
 //   title: "Plugin"
 //   classification:
 //     category: "engineering"
@@ -17,7 +17,8 @@
 //     scopes:
 //       - target_ref: "urn:somnus:artifact:01a19a69-8869-73d2-8d0c-7b37b16dd932"
 //         aspects: ["content"]
-//   time: {}
+//   time:
+//     updated_at: "2026-11-06T08:17:31+00:00"
 //   names:
 //     slug: "plugin"
 //   knowledge:
@@ -44,6 +45,11 @@ const args = process.argv.slice(2);
 const version = process.env.FAKE_SOMNUS_VERSION || '2.1.0';
 if (args.includes('--version')) { console.log('somnus ' + version); process.exit(0); }
 if (args.includes('ls')) { console.log('id\\ttitle'); process.exit(0); }
+if (args[0] === 'daemon' && args[1] === 'install') { console.log('wrote unit' + (args.includes('--dry-run') ? ' (dry run)' : '')); process.exit(0); }
+if (args[0] === 'daemon' && args[1] === 'status') {
+  if (process.env.FAKE_WATCH === 'running') { console.log('field\\tvalue\\nstate\\trunning\\npid\\t42\\nstamped\\t3\\nrevised\\t1\\nerrors\\t0'); process.exit(0); }
+  console.log('watcher: never ran'); process.exit(1);
+}
 if (args.includes('mcp')) {
   let buf = '';
   process.stdin.on('data', (d) => {
@@ -173,6 +179,34 @@ describe('install, doctor, uninstall', () => {
     });
     assert.equal(missing, 1);
     assert.ok(lines.some((l) => l.includes("pip install somnus-metadata")));
+  });
+
+  it('install --watch registers the watcher on a 2.2 backend and refuses an older one', async () => {
+    lines = [];
+    const env = { PATH: process.env.PATH, FAKE_SOMNUS_VERSION: '2.2.0' };
+    const io = { out: (m) => lines.push(m), err: (m) => lines.push(m), env };
+    assert.equal(await main(['install', '--somnus', somnus, '--host', 'droid', '--watch', '--home', home], io), 0, lines.join('\n'));
+    assert.ok(lines.some((l) => l.includes('daemon install')), lines.join('\n'));
+    assert.ok(lines.some((l) => l.includes('wrote unit')));
+    lines = [];
+    assert.equal(await main(['install', '--somnus', somnus, '--host', 'droid', '--watch', '--home', home], {
+      out: (m) => lines.push(m), err: (m) => lines.push(m), env: { PATH: process.env.PATH },
+    }), 1);
+    assert.ok(lines.some((l) => l.includes('--watch needs somnus 2.2.0')));
+  });
+
+  it('doctor reports the watcher state without failing on it', async () => {
+    const env = { PATH: process.env.PATH, FAKE_SOMNUS_VERSION: '2.2.0' };
+    const io = () => ({ out: (m) => lines.push(m), err: (m) => lines.push(m), env });
+    lines = [];
+    assert.equal(await main(['install', '--somnus', somnus, '--host', 'droid', '--home', home], io()), 0);
+    lines = [];
+    assert.equal(await main(['doctor', '--somnus', somnus, '--host', 'droid', '--home', home], io()), 0, lines.join('\n'));
+    assert.ok(lines.some((l) => l.startsWith('warn watcher: never ran')), lines.join('\n'));
+    lines = [];
+    env.FAKE_WATCH = 'running';
+    assert.equal(await main(['doctor', '--somnus', somnus, '--host', 'droid', '--home', home], io()), 0);
+    assert.ok(lines.some((l) => l.startsWith('ok   watcher: running (pid 42; stamped 3, revised 1')), lines.join('\n'));
   });
 
   it('doctor fails when nothing is installed', async () => {
@@ -342,6 +376,7 @@ describe('argument parsing', () => {
     assert.throws(() => parse(['install', '--host', 'vim']), /unknown host/);
     assert.throws(() => parse(['install', '--nope']), /unknown argument/);
     assert.throws(() => parse(['install', '--somnus']), /needs a value/);
+    assert.equal(parse(['install', '--watch']).watch, true);
   });
 
   it('prints usage without a command', async () => {

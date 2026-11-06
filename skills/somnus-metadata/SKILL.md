@@ -10,7 +10,7 @@ description: >-
 somnus:
   schema: "somnus://metadata/core/2.0.0"
   id: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
-  revision: 4
+  revision: 5
   title: "Somnus Metadata"
   classification:
     category: "engineering"
@@ -26,7 +26,7 @@ somnus:
       - target_ref: "urn:somnus:artifact:01a19a69-881a-7245-966c-ff3762ab3c0a"
         aspects: ["content"]
   time:
-    updated_at: "2026-11-02T06:19:34+00:00"
+    updated_at: "2026-11-06T08:17:31+00:00"
   names:
     slug: "somnus-metadata"
   knowledge:
@@ -42,17 +42,26 @@ somnus:
 
 # Somnus Metadata
 
-Somnus Metadata gives every managed file one `somnus:` header (Markdown frontmatter, a
-comment envelope in code/config, or a `<file>.somnus.yaml` sidecar for any other file type)
-and keeps one global SQLite registry (`~/.somnus/somnus.db`) with identity, revisions,
-relations, conflicts, and a full-text index of file content.
+Somnus Metadata gives every managed file one `somnus:` header, inside the file wherever the
+format allows (Markdown frontmatter; a comment envelope in code, config, and build files,
+including `Dockerfile`, `Makefile`, `CODEOWNERS`, `.gitignore`, and shebang scripts;
+`metadata.somnus` in notebooks; opt-in `"$somnus"` in JSON). Only formats with no place for it
+(plain text, CSV, binaries, strict JSON by default) use a `<file>.somnus.yaml` sidecar. One
+global SQLite registry (`~/.somnus/somnus.db`) holds identity, revisions, relations, claims,
+entities, conflicts, and a full-text index, so the whole collection can be queried and
+reasoned over, not just found.
 
-Two equivalent surfaces reach the same backend:
+Three parts, one backend:
+
+- **The watcher** (`somnus watch`, installed 24/7 with `somnus daemon install`) stamps new
+  files, records in-place edits as new revisions, and keeps the registry current. Check it
+  with `daemon status` (MCP: `daemon` with `action: status`). It is not the MCP server.
 
 - **MCP server `somnus-metadata`**: one tool per command (`q`, `ls`, `check`, `stamp`, `new`,
   `set`, `status`, `bump`, `index`, `stale`, ...). Tool results are the command's text or TSV.
 - **CLI `somnus`** (alias `somnus-metadata`): identical commands and flags. Use it when you
-  have a shell. Install with `pip install -U somnus-metadata` in a venv on PATH.
+  have a shell. Install with `pip install -U somnus-metadata` in a venv on PATH. Humans also
+  get `somnus edit`, a terminal UI over the same registry.
 
 The live cheat sheet is `somnus brief` (MCP: `brief`); the server's instructions carry it too.
 
@@ -90,7 +99,9 @@ unrelated files or mass-adopt a user's machine. Respect the current task and roo
   Unknown fields are errors; tool-specific data goes under `extensions.<owner>`.
 - Lifecycle changes go through `status`, never by editing `lifecycle.status`.
 - Changed the body of an indexed file? Record it with `bump PATH --reason "..."`. Otherwise the
-  next `index` opens a revision conflict.
+  next `index` opens a revision conflict. When `daemon status` shows the watcher running with
+  `revise = auto`, it records that revision itself after the file settles; bump anyway when you
+  want a reason on the record, and re-read a file before editing its envelope.
 - `role: normative` is intent, not acceptance. Only `authority.standing: accepted` is authoritative.
 - With MCP, **pass absolute paths**. Relative paths resolve from the server's directory.
 - **Use `tsv: true` for MCP queries and listings when an agent needs complete paths or fields.**
@@ -108,7 +119,8 @@ a search miss is not evidence of absence while the relevant root is unregistered
 **Adopt an existing file (any type).**
 1. `stamp /abs/file` shows the header it would add (dry run).
 2. `stamp /abs/file --write` writes it (add `--type T --title "..."` to override inference).
-   Files without an embedded carrier get a `<file>.somnus.yaml` sidecar.
+   Only files without an embedded carrier get a `<file>.somnus.yaml` sidecar. Plain `.json`
+   objects can carry `"$somnus"` instead with `--inline`.
 3. The file is now in the registry and searchable. `index` reports remaining unmanaged files
    (its examples are bounded, not an exhaustive path list). Backend 2.1.1+ discovers
    unmanaged sidecar-only hosts too, including JSON, text and binaries.
@@ -136,6 +148,20 @@ transition lists the allowed next states. Superseding takes `--replacement URN`.
 (`q --tables` lists tables and views).
 
 **Keep it fresh.** `index` reconciles every registered root (incremental; `--full` re-reads).
+With the watcher running this happens continuously. Old sidecars for hosts that now have a
+carrier move inline with `migrate --inline /abs/root` (dry run) then `--write`.
+
+**Reason over the collection.** The registry is a graph, not just a search index. Before
+answering a design or "what do we know" question, pull the structure, then read the files:
+
+- What points at X: `q "SELECT artifact_id, predicate FROM relations WHERE object_ref = 'URN'"`
+- What X depends on or derives from: `q "SELECT predicate, object_ref FROM relations WHERE artifact_id = 'URN'"`
+- Claims about a subject, with their assessment: `q "SELECT artifact_id, statement, assessment FROM claims WHERE subject_ref = 'URN'"`
+- What is authoritative: `ls --standing accepted`; what is in flux: `ls --status draft`, `q --conflicts`
+- What changed recently: `q --history --limit 20`
+
+Treat `accepted` standing as authority, candidates as proposals, and open conflicts as
+unresolved. Cite the artifact `id` and path you relied on.
 
 Exit codes: `0` ok, `1` validation errors, refusals, or conflicts, `2` usage or I/O errors.
 On MCP a non-zero exit sets `isError` and the text ends with `[exit N]`. Read the diagnostic:
